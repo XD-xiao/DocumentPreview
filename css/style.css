@@ -128,6 +128,7 @@ body {
   cursor: pointer;
   transition: all 0.15s ease;
   background: var(--surface-2);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .doc-item:hover {
@@ -211,6 +212,8 @@ body {
   display: inline-flex;
   align-items: center;
   transition: all 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn:hover:not(:disabled) {
@@ -304,37 +307,115 @@ body {
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 16px;
+  padding: 24px;
   color: #fca5a5;
+  text-align: center;
+}
+
+.retry-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.retry-btn:hover:not(:disabled) {
+  border-color: #fff;
+  color: #fff;
+}
+
+/* 确保 hidden 属性生效，避免 display:flex 覆盖 [hidden] */
+.loading[hidden],
+.error-box[hidden] {
+  display: none;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
+  .header-inner {
+    padding: 10px 14px;
+  }
+
+  .brand-logo {
+    font-size: 24px;
+  }
+
+  .brand-text h1 {
+    font-size: 16px;
+  }
+
+  .brand-text p {
+    font-size: 12px;
+  }
+
+  .header-badge {
+    display: none;
+  }
+
   .layout {
     flex-direction: column;
-    padding: 12px;
+    padding: 10px;
+    gap: 10px;
   }
 
   .sidebar {
     width: 100%;
-    flex-direction: column;
+    flex-shrink: 0;
+    padding: 12px;
+  }
+
+  .sidebar-title {
+    margin-bottom: 10px;
   }
 
   .doc-list {
     flex-direction: row;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px;
+    padding-bottom: 4px;
   }
 
   .doc-item {
-    min-width: 220px;
+    min-width: 190px;
+    flex-shrink: 0;
+    padding: 10px 12px;
   }
 
   .sidebar-footer {
     display: none;
   }
 
-  .header-badge {
-    display: none;
+  .toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .toolbar-left,
+  .toolbar-right {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .btn.icon {
+    padding: 8px 11px;
+  }
+
+  .page-indicator input {
+    width: 46px;
+    padding: 6px;
+  }
+
+  .viewer-container {
+    padding: 12px;
   }
 }

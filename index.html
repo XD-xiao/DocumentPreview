@@ -41,6 +41,7 @@
           <button id="btn-next" class="btn" title="下一页" disabled>下一页 &rsaquo;</button>
         </div>
         <div class="toolbar-right">
+          <button id="btn-fit" class="btn" title="适应宽度">适应宽度</button>
           <button id="btn-zoom-out" class="btn icon" title="缩小">&minus;</button>
           <span id="zoom-level" class="zoom-level">100%</span>
           <button id="btn-zoom-in" class="btn icon" title="放大">+</button>
@@ -57,13 +58,14 @@
           <canvas id="pdf-canvas"></canvas>
         </div>
         <div id="error-box" class="error-box" hidden>
-          <p>文档加载失败，请稍后重试。</p>
+          <p id="error-message">文档加载失败，请稍后重试。</p>
+          <button id="btn-retry" class="btn retry-btn">重试</button>
         </div>
       </div>
     </main>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <script src="vendor/pdf.min.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
