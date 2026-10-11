@@ -1,26 +1,24 @@
 (function () {
   "use strict";
 
-  // 文档清单（file 为仓库内英文文件名，展示名保持中文）
+  // 文档清单（file 为仓库内文件名，展示名保持中文）
   const documents = [
     {
       id: "network",
       name: "计算机原组网总资料 预览25.5版",
-      file: "network-preview.pdf",
-      icon: "🌐"
+      file: "network-preview.pdf"
     },
     {
       id: "c-algorithm",
       name: "C笔记+算法库26.4 水印预览版",
-      file: "c-algorithm-preview.pdf",
-      icon: "💻"
+      file: "c-algorithm-preview.pdf"
     }
   ];
 
   // 使用本地打包的 worker，避免跨域与 CDN 延迟
   pdfjsLib.GlobalWorkerOptions.workerSrc = "vendor/pdf.worker.min.js";
 
-  const docListEl = document.getElementById("doc-list");
+  const docSelect = document.getElementById("doc-select");
   const canvas = document.getElementById("pdf-canvas");
   const loadingEl = document.getElementById("loading");
   const errorBox = document.getElementById("error-box");
@@ -37,38 +35,37 @@
   const zoomLevel = document.getElementById("zoom-level");
   const btnDownload = document.getElementById("btn-download");
   const btnRetry = document.getElementById("btn-retry");
+  const btnBuy = document.getElementById("btn-buy");
+  const buyModal = document.getElementById("buy-modal");
 
   let pdfDoc = null;
   let currentPage = 1;
   let totalPages = 0;
   let currentScale = 1.0;
   let fitScale = null;
+  let basePageWidth = null;
+  let isFitMode = false;
   let currentFile = null;
   let renderTask = null;
   let loadId = 0;
 
   const SCALE_STEP = 0.1;
   const SCALE_MIN = 0.5;
-  const SCALE_MAX = 2.5;
+  const SCALE_MAX = 3.0;
   const MOBILE_BREAKPOINT = 768;
 
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
   }
 
-  // 渲染侧边栏文档列表
-  function renderDocList() {
-    docListEl.innerHTML = "";
+  // 渲染文档下拉框
+  function renderDocSelect() {
+    docSelect.innerHTML = "";
     documents.forEach((doc) => {
-      const li = document.createElement("li");
-      li.className = "doc-item";
-      li.dataset.id = doc.id;
-      li.innerHTML =
-        '<span class="doc-icon">' + doc.icon + "</span>" +
-        '<div class="doc-name">' + doc.name + "</div>" +
-        '<div class="doc-meta">PDF 文档</div>';
-      li.addEventListener("click", () => selectDocument(doc.id));
-      docListEl.appendChild(li);
+      const opt = document.createElement("option");
+      opt.value = doc.id;
+      opt.textContent = doc.name;
+      docSelect.appendChild(opt);
     });
   }
 
@@ -76,10 +73,7 @@
     const doc = documents.find((d) => d.id === id);
     if (!doc) return;
 
-    document.querySelectorAll(".doc-item").forEach((el) => {
-      el.classList.toggle("active", el.dataset.id === id);
-    });
-
+    docSelect.value = id;
     btnDownload.setAttribute("href", doc.file);
     btnDownload.setAttribute("download", doc.name + ".pdf");
 
@@ -102,6 +96,7 @@
     loadingEl.hidden = false;
     errorBox.hidden = true;
     canvas.style.display = "none";
+    viewerContainer.scrollTop = 0;
 
     // disableAutoFetch: 只按需加载当前页，避免一次性下载整份大 PDF
     const task = pdfjsLib.getDocument({
@@ -127,9 +122,11 @@
       .then((page) => {
         if (id !== loadId) return;
         const base = page.getViewport({ scale: 1 });
-        fitScale = clamp(availableWidth() / base.width, SCALE_MIN, SCALE_MAX);
+        basePageWidth = base.width;
+        fitScale = clamp(availableWidth() / basePageWidth, SCALE_MIN, SCALE_MAX);
         // 移动端默认按宽度自适应，桌面端默认 100%
-        currentScale = window.innerWidth <= MOBILE_BREAKPOINT ? fitScale : 1.0;
+        isFitMode = window.innerWidth <= MOBILE_BREAKPOINT;
+        currentScale = isFitMode ? fitScale : 1.0;
         zoomLevel.textContent = Math.round(currentScale * 100) + "%";
         renderPage(1);
       })
@@ -222,16 +219,40 @@
     errorBox.hidden = false;
   }
 
+  function openModal() {
+    buyModal.hidden = false;
+  }
+
+  function closeModal() {
+    buyModal.hidden = true;
+  }
+
   // 事件绑定
+  docSelect.addEventListener("change", () => selectDocument(docSelect.value));
   btnPrev.addEventListener("click", () => goToPage(currentPage - 1));
   btnNext.addEventListener("click", () => goToPage(currentPage + 1));
-  btnZoomIn.addEventListener("click", () => setScale(currentScale + SCALE_STEP));
-  btnZoomOut.addEventListener("click", () => setScale(currentScale - SCALE_STEP));
+  btnZoomIn.addEventListener("click", () => {
+    isFitMode = false;
+    setScale(currentScale + SCALE_STEP);
+  });
+  btnZoomOut.addEventListener("click", () => {
+    isFitMode = false;
+    setScale(currentScale - SCALE_STEP);
+  });
   btnFit.addEventListener("click", () => {
+    isFitMode = true;
     if (pdfDoc && fitScale) setScale(fitScale);
   });
   btnRetry.addEventListener("click", () => {
     if (currentFile) loadDocument(currentFile);
+  });
+
+  btnBuy.addEventListener("click", openModal);
+  buyModal.querySelectorAll("[data-close]").forEach((el) => {
+    el.addEventListener("click", closeModal);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeModal();
   });
 
   pageInput.addEventListener("change", () => {
@@ -246,7 +267,18 @@
     }
   });
 
+  // 视口变化时重算适应宽度比例；处于适应宽度模式则自动重渲染（带防抖）
+  let resizeTimer = null;
+  function handleResize() {
+    if (!pdfDoc || !basePageWidth) return;
+    fitScale = clamp(availableWidth() / basePageWidth, SCALE_MIN, SCALE_MAX);
+    if (!isFitMode) return;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => setScale(fitScale), 150);
+  }
+  window.addEventListener("resize", handleResize);
+
   // 初始化
-  renderDocList();
+  renderDocSelect();
   selectDocument(documents[0].id);
 })();

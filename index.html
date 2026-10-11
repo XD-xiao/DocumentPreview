@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="description" content="资料预览 - 在线查看计算机原组网总资料与 C笔记+算法库" />
   <title>资料预览</title>
   <link rel="stylesheet" href="css/style.css" />
@@ -10,59 +10,72 @@
 <body>
   <header class="app-header">
     <div class="header-inner">
-      <div class="brand">
+      <a class="brand" href="./" title="资料预览">
         <span class="brand-logo">📚</span>
-        <div class="brand-text">
-          <h1>资料预览</h1>
-          <p>在线查阅文档 · 水印预览版</p>
-        </div>
+        <span class="brand-title">资料预览</span>
+      </a>
+
+      <div class="header-actions">
+        <select id="doc-select" class="doc-select" aria-label="选择文档"></select>
+        <a id="btn-download" class="btn btn-ghost" title="下载当前文档" download>下载</a>
+        <button id="btn-buy" class="btn btn-primary" type="button">购买</button>
       </div>
-      <span class="header-badge">PDF 在线预览</span>
     </div>
   </header>
 
-  <div class="layout">
-    <aside class="sidebar">
-      <h2 class="sidebar-title">文档列表</h2>
-      <ul id="doc-list" class="doc-list"></ul>
-      <footer class="sidebar-footer">
-        <p>本站内容仅供预览，版权归原作者所有。</p>
-      </footer>
-    </aside>
-
-    <main class="viewer">
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <button id="btn-prev" class="btn" title="上一页" disabled>&lsaquo; 上一页</button>
-          <span class="page-indicator">
-            <input id="page-input" type="number" min="1" value="1" />
-            <span id="page-total">/ 0</span>
-          </span>
-          <button id="btn-next" class="btn" title="下一页" disabled>下一页 &rsaquo;</button>
-        </div>
-        <div class="toolbar-right">
-          <button id="btn-fit" class="btn" title="适应宽度">适应宽度</button>
-          <button id="btn-zoom-out" class="btn icon" title="缩小">&minus;</button>
-          <span id="zoom-level" class="zoom-level">100%</span>
-          <button id="btn-zoom-in" class="btn icon" title="放大">+</button>
-          <a id="btn-download" class="btn" title="下载" download>下载</a>
-        </div>
+  <main class="viewer">
+    <div id="viewer-container" class="viewer-container">
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>正在加载文档…</p>
       </div>
-
-      <div id="viewer-container" class="viewer-container">
-        <div id="loading" class="loading">
-          <div class="spinner"></div>
-          <p>正在加载文档…</p>
-        </div>
-        <div id="canvas-wrap" class="canvas-wrap">
-          <canvas id="pdf-canvas"></canvas>
-        </div>
-        <div id="error-box" class="error-box" hidden>
-          <p id="error-message">文档加载失败，请稍后重试。</p>
-          <button id="btn-retry" class="btn retry-btn">重试</button>
-        </div>
+      <div id="canvas-wrap" class="canvas-wrap">
+        <canvas id="pdf-canvas"></canvas>
       </div>
-    </main>
+      <div id="error-box" class="error-box" hidden>
+        <p id="error-message">文档加载失败，请稍后重试。</p>
+        <button id="btn-retry" class="btn btn-retry">重试</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bottom-bar">
+    <div class="bottom-bar-inner">
+      <div class="bar-group">
+        <button id="btn-zoom-out" class="btn icon" title="缩小" aria-label="缩小">&minus;</button>
+        <span id="zoom-level" class="zoom-level">100%</span>
+        <button id="btn-zoom-in" class="btn icon" title="放大" aria-label="放大">+</button>
+        <button id="btn-fit" class="btn icon" title="适应宽度" aria-label="适应宽度">⤢</button>
+      </div>
+      <div class="bar-divider"></div>
+      <div class="bar-group">
+        <button id="btn-prev" class="btn icon" title="上一页" aria-label="上一页" disabled>&lsaquo;</button>
+        <span class="page-indicator">
+          <input id="page-input" type="number" min="1" value="1" inputmode="numeric" />
+          <span id="page-total">/ 0</span>
+        </span>
+        <button id="btn-next" class="btn icon" title="下一页" aria-label="下一页" disabled>&rsaquo;</button>
+      </div>
+    </div>
+  </footer>
+
+  <div id="buy-modal" class="modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="buy-title">
+      <button class="modal-close" data-close aria-label="关闭">&times;</button>
+      <h2 id="buy-title" class="modal-title">购买咨询</h2>
+      <p class="modal-sub">添加微信或 QQ，备注「资料购买」即可咨询</p>
+      <div class="qr-grid">
+        <figure class="qr-item">
+          <img src="img/微信.jpg" alt="微信二维码" />
+          <figcaption>微信咨询</figcaption>
+        </figure>
+        <figure class="qr-item">
+          <img src="img/QQ.jpg" alt="QQ二维码" />
+          <figcaption>QQ 咨询</figcaption>
+        </figure>
+      </div>
+    </div>
   </div>
 
   <script src="vendor/pdf.min.js"></script>
